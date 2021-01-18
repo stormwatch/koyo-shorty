@@ -1,0 +1,36 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:13.1
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-d", "postgres", "-U", "shorty" ]
+      timeout: 45s
+      interval: 10s
+      retries: 10
+    restart: always
+    environment:
+      POSTGRES_DB: shorty
+      POSTGRES_USER: shorty
+      POSTGRES_PASSWORD: shorty
+    volumes:
+      - shorty-pg-data:/var/lib/postgresql/data
+
+  shorty:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      SHORTY_LISTEN_IP: 0.0.0.0
+      SHORTY_PORT: 8000
+      SHORTY_DATABASE_URL: postgres://shorty:shorty@postgres/shorty
+    depends_on:
+      - postgres
+    links:
+      - postgres
+    ports:
+      - 8000:8000
+
+volumes:
+  shorty-pg-data:
